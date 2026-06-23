@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okio.BufferedSource;
+import com.caobolun.framework.trace.RagStreamTraceSupport.StreamSpan;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,7 +29,7 @@ public abstract class AbstractOpenAIStyleChatClient implements ChatClient {
     private final OkHttpClient syncHttpClient;
     private final OkHttpClient streamingHttpClient;
     private final Executor modelStreamExecutor;
-    private final RagStreamTraceSupport ragStreamTraceSupport;
+    private final RagStreamTraceSupport streamTraceSupport;
     protected Gson gson = new Gson();
 
     /**
@@ -87,6 +88,48 @@ public abstract class AbstractOpenAIStyleChatClient implements ChatClient {
         }
 
         return extractChatContent(respJson);
+    }
+
+    // ==================== 模板方法：流式调用 ====================
+
+    protected StreamCancellationHandle doStreamChat(ChatRequest request, StreamCallback callback, ModelTarget target) {
+        AIModelProperties.ProviderConfig provider = HttpResponseHelper.requireProvider(target, provider());
+        if (requiresApiKey()) {
+            HttpResponseHelper.requireApiKey(provider, provider());
+        }
+
+        JsonObject reqBody = buildRequestBody(request, target, true);
+        Request streamRequest = newAuthorizedRequest(provider, target)
+                .post(RequestBody.create(reqBody.toString(), HttpMediaTypes.JSON))
+                .addHeader("Accept", "text/event-stream")
+                .build();
+
+        Call call = streamingHttpClient.newCall(streamRequest);
+        boolean reasoningEnabled = isReasoningEnabledForStream(request);
+
+        // 在调用线程开 stream span，使后续 first-packet 子节点能正确归属父节点；
+        // 该 span 由 SSE 终态（onComplete / onError）或 cancel 时收尾，记录真实端到端耗时
+        StreamSpan span = streamTraceSupport.beginStreamNode(provider() + "-stream-chat", "LLM_PROVIDER");
+        StreamSpanCallback wrappedCallback;
+        try {
+            wrappedCallback = new StreamSpanCallback(callback, span);
+            StreamCancellationHandle inner = StreamAsyncExecutor.submit(
+                    modelStreamExecutor,
+                    call,
+                    wrappedCallback,
+                    cancelled -> doStream(call, wrappedCallback, cancelled, reasoningEnabled)
+            );
+            return () -> {
+                try {
+                    inner.cancel();
+                } finally {
+                    wrappedCallback.onCancel();
+                }
+            };
+        } finally {
+            // 同步部分结束：把节点从当前线程的 NODE_STACK 弹出，避免污染兄弟节点的父节点链
+            span.detach();
+        }
     }
 
     private void doStream(Call call, StreamCallback callback, AtomicBoolean cancelled, boolean reasoningEnabled) {

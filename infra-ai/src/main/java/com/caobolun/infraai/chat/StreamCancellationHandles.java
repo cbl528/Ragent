@@ -16,6 +16,10 @@ public class StreamCancellationHandles {
         return NOOP;
     }
 
+    public static StreamCancellationHandle fromOkHttp(Call call, AtomicBoolean cancelled) {
+        return new OkHttpCancellationHandle(call, cancelled);
+    }
+
     private static final class OkHttpCancellationHandle implements StreamCancellationHandle {
 
         private final Call call;
