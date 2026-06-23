@@ -4,12 +4,23 @@ import com.caobolun.framework.convention.ChatRequest;
 import com.caobolun.framework.trace.RagTraceNode;
 import com.caobolun.infraai.enums.ModelProvider;
 import com.caobolun.infraai.model.ModelTarget;
+import com.caobolun.framework.trace.RagStreamTraceSupport;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.Executor;
 
 @Slf4j
 @Service
 public class SiliconFlowChatClient extends AbstractOpenAIStyleChatClient {
+
+    public SiliconFlowChatClient(OkHttpClient syncHttpClient,
+                                  OkHttpClient streamingHttpClient,
+                                  Executor modelStreamExecutor,
+                                  RagStreamTraceSupport ragStreamTraceSupport) {
+        super(syncHttpClient, streamingHttpClient, modelStreamExecutor, ragStreamTraceSupport);
+    }
 
     @Override
     public String provider() {
