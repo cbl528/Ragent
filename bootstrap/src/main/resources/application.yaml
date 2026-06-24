@@ -8,6 +8,13 @@ server:
 rag:
   trace:
     enabled: false
+  vector:
+    type: pg
+  default:
+    collection-name: rag_default_store
+    dimension: 1536
+    metric-type: COSINE
+    sse-timeout-ms: 300000
 
 # SaToken配置
 sa-token:
