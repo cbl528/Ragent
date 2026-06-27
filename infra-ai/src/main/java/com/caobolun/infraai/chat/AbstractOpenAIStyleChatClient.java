@@ -11,11 +11,13 @@ import com.caobolun.infraai.model.ModelTarget;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okio.BufferedSource;
 import com.caobolun.framework.trace.RagStreamTraceSupport.StreamSpan;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,13 +25,17 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
-@RequiredArgsConstructor
 public abstract class AbstractOpenAIStyleChatClient implements ChatClient {
 
-    private final OkHttpClient syncHttpClient;
-    private final OkHttpClient streamingHttpClient;
-    private final Executor modelStreamExecutor;
-    private final RagStreamTraceSupport streamTraceSupport;
+    @Autowired
+    private OkHttpClient syncHttpClient;
+    @Autowired
+    private OkHttpClient streamingHttpClient;
+    @Autowired
+    private Executor modelStreamExecutor;
+    @Autowired
+    private RagStreamTraceSupport streamTraceSupport;
+
     protected Gson gson = new Gson();
 
     /**
