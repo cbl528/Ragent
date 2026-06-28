@@ -1,7 +1,11 @@
 package com.caobolun.bootstrap.rag.service.impl;
 
+import com.caobolun.bootstrap.rag.config.MemoryProperties;
 import com.caobolun.bootstrap.rag.dto.request.ConversationUpdateRequest;
 import com.caobolun.bootstrap.rag.dto.vo.ConversationVO;
+import com.caobolun.bootstrap.rag.mapper.ConversationMapper;
+import com.caobolun.bootstrap.rag.mapper.ConversationMessageMapper;
+import com.caobolun.bootstrap.rag.mapper.ConversationSummaryMapper;
 import com.caobolun.bootstrap.rag.service.ConversationService;
 import com.caobolun.bootstrap.rag.service.bo.ConversationCreateBO;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +24,10 @@ import java.util.List;
 public class ConversationServiceImpl implements ConversationService {
 
     private final ConversationMapper conversationMapper;
+    private final ConversationMessageMapper conversationMessageMapper;
+    private final ConversationSummaryMapper conversationSummaryMapper;
+    private final MemoryProperties memoryProperties;
+    private final ConversationTitleGenerator conversationTitleGenerator;
 
     @Override
     public List<ConversationVO> listByUserId(String userId) {
