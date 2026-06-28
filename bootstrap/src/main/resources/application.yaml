@@ -4,36 +4,66 @@ spring:
 server:
   port: 8001
 
-# 是否开启Trace
+# RAG配置
 rag:
   trace:
-    enabled: false
+    enabled: false # 是否开启Trace
+
   vector:
-    type: pg
+    type: pg # 向量存储类型，可选：pg / milvus
+
+  query-rewrite:
+    enabled: true # 是否开启查询重写
+
+  rerank:
+    enabled: true # 是否开启检索重排序
+
   default:
-    collection-name: rag_default_store
-    dimension: 1536
-    metric-type: COSINE
-    sse-timeout-ms: 300000
+    collection-name: rag_default_store # 默认向量存储集合名称
+    dimension: 1536 # 默认向量维度
+    metric-type: COSINE # 默认向量度量类型
+    sse-timeout-ms: 300000 # 默认SSE超时时间
+
   rate-limit:
     global:
-      enabled: true
-      max-concurrent: 10
-      max-wait-seconds: 15
-      lease-seconds: 30
-      poll-interval-ms: 200
+      enabled: true # 是否开启全局限流
+      max-concurrent: 10 # 全局限流最大并发数
+      max-wait-seconds: 15 # 全局限流最大等待时间
+      lease-seconds: 30 # 全局限流租约时间
+      poll-interval-ms: 200 # 全局限流轮询间隔
+
+  memory:
+    history-keep-turns: 4 # 保持对话历史轮数
+    summary-start-turns: 5 # 摘要开始轮数
+    summary-enabled: true # 是否启用摘要
+    summary-max-chars: 200 # 摘要最大字符数
+    title-max-length: 30 # 标题最大长度
+
+  semaphore:
+    document-upload:
+      name: rag:document:upload # 信号量名称
+      max-concurrent: 10 # 最大并发数
+      max-wait-seconds: 5 # 最大等待时间
+      lease-seconds: 300 # 租约时间
+
+  knowledge:
+    schedule:
+      scan-delay-ms: 10000 # 扫描延迟时间
+      lock-seconds: 900 # 锁定时间
+      batch-size: 20 # 批量处理数量
+      min-interval-seconds: 60 # 最小间隔时间
 
 # SaToken配置
 sa-token:
-  token-name: Authorization
-  timeout: 2592000
-  is-concurrent: true
-  is-share: false
-  token-style: simple-uuid
-  is-log: false
-  is-print: false
+  token-name: Authorization # Token名称
+  timeout: 2592000 # Token超时时间
+  is-concurrent: true # 是否开启并发控制
+  is-share: false # 是否共享Token
+  token-style: simple-uuid # Token样式
+  is-log: false # 是否开启日志
+  is-print: false # 是否开启打印
 
 app:
   demo-mode: false
   eval:
-    enabled: true
+    enabled: true # 是否开启评估模式
