@@ -3,6 +3,7 @@ package com.caobolun.bootstrap.rag.service;
 
 import com.caobolun.bootstrap.rag.dto.request.ConversationUpdateRequest;
 import com.caobolun.bootstrap.rag.dto.vo.ConversationVO;
+import com.caobolun.bootstrap.rag.service.bo.ConversationCreateBO;
 
 import java.util.List;
 
