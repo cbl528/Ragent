@@ -1,6 +1,7 @@
 package com.caobolun.framework.mq.producer;
 
-import jakarta.websocket.SendResult;
+
+import org.apache.rocketmq.client.producer.SendResult;
 
 import java.util.function.Consumer;
 
@@ -22,9 +23,7 @@ public interface MessageQueueProducer {
 
     /**
      * 发送事务消息
-     * <p>
      * 流程：发送 half 消息 → 执行本地事务 → 根据结果 commit/rollback
-     * <p>
      * 事务回查由按 topic 注册的 {@link TransactionChecker} 处理，需提前通过
      * {@link DelegatingTransactionListener#registerChecker(String, TransactionChecker)} 注册
      *
