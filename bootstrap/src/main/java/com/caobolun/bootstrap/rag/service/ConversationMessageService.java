@@ -1,7 +1,10 @@
 package com.caobolun.bootstrap.rag.service;
 
 
+import com.caobolun.bootstrap.core.enums.ConversationMessageOrder;
 import com.caobolun.bootstrap.rag.dto.vo.ConversationMessageVO;
+import com.caobolun.bootstrap.rag.service.bo.ConversationMessageBO;
+import com.caobolun.bootstrap.rag.service.bo.ConversationSummaryBO;
 
 import java.util.List;
 

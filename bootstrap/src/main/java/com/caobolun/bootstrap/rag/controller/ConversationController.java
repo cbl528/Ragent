@@ -1,5 +1,6 @@
 package com.caobolun.bootstrap.rag.controller;
 
+import com.caobolun.bootstrap.core.enums.ConversationMessageOrder;
 import com.caobolun.bootstrap.rag.dto.request.ConversationUpdateRequest;
 import com.caobolun.bootstrap.rag.dto.vo.ConversationMessageVO;
 import com.caobolun.bootstrap.rag.dto.vo.ConversationVO;
