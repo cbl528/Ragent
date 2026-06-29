@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.caobolun.bootstrap.rag.constant.RAGConstant.*;
+
 /**
  * RAG Prompt 编排服务
  * <p>
