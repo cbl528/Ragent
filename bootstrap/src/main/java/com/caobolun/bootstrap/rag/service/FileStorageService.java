@@ -1,5 +1,6 @@
 package com.caobolun.bootstrap.rag.service;
 
+import com.caobolun.bootstrap.rag.dto.StoredFileDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;

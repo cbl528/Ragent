@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * AI 模型配置属性类
+ * 用于从配置文件中读取 AI 相关的配置信息，包括提供商配置、模型组配置等
+ */
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "ai")
@@ -34,6 +38,11 @@ public class AIModelProperties {
      * 重排序模型组配置
      */
     private ModelGroup rerank = new ModelGroup();
+
+    /**
+     * 视觉大模型组配置（图生文，知识库入库期使用）
+     */
+    private ModelGroup vlm = new ModelGroup();
 
     /**
      * 模型选择策略配置
@@ -114,6 +123,7 @@ public class AIModelProperties {
          */
         private Boolean supportsThinking = false;
     }
+
     /**
      * 提供商配置类
      * 包含提供商的基本连接信息和端点配置
@@ -168,5 +178,4 @@ public class AIModelProperties {
          */
         private Integer messageChunkSize = 5;
     }
-
 }

@@ -35,6 +35,11 @@ public class ModelSelector {
         return selectCandidates(modelProperties.getRerank());
     }
 
+    public List<ModelTarget> selectVlmCandidates() {
+        return selectCandidates(modelProperties.getVlm());
+    }
+
+
     /**
      * 对话场景专用，传入是否开启深度思考，返回有序可用对话模型列表
      * @param deepThinking

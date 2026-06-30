@@ -1,5 +1,6 @@
 package com.caobolun.bootstrap.rag.dto.request;
 
+import com.caobolun.bootstrap.ingestion.domain.enums.SourceType;
 import lombok.Data;
 
 import java.util.Map;
