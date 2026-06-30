@@ -1,3 +1,5 @@
 spring:
   application:
     name: mcp-server
+server:
+  port: 9001
