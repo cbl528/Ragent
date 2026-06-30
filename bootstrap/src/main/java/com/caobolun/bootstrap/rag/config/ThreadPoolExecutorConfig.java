@@ -77,8 +77,24 @@ public class ThreadPoolExecutorConfig {
     }
 
     /**
-     * 意图识别并行执行线程池
+     * RAG 检索线程池（用于通道级别的并行）
      */
+    @Bean
+    public Executor ragRetrievalExecutor() {
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(
+                CPU_COUNT << 2,
+                CPU_COUNT << 2,
+                60,
+                TimeUnit.SECONDS,
+                new SynchronousQueue<>(),
+                ThreadFactoryBuilder.create()
+                        .setNamePrefix("rag_retrieval_executor_")
+                        .build(),
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+        return TtlExecutors.getTtlExecutor(executor);
+    }
+
     @Bean
     public Executor intentClassifyExecutor() {
         ThreadPoolExecutor intentClassifyExecutor = new ThreadPoolExecutor(

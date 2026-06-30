@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQTransactionListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionState;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -23,11 +24,8 @@ public class DelegatingTransactionListener implements RocketMQLocalTransactionLi
     static final String HEADER_TX_ID = "TRANSACTION_CONTEXT_ID";
     static final String HEADER_TOPIC = "TRANSACTION_TOPIC";
 
-    private final PlatformTransactionManager transactionManager;
-
-    public DelegatingTransactionListener(PlatformTransactionManager platformTransactionManager){
-        this.transactionManager = platformTransactionManager;
-    }
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     /**
      * 本地事务执行逻辑，per-message，仅当前实例有效

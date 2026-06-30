@@ -22,7 +22,7 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     username: postgres                      # 填写你的 PG 用户名
     password: postgres200528                # 填写你的 PG 密码
-    url: jdbc:postgresql://124.221.110.104:35432/ragent?client_encoding=UTF8    # 填写 PG 连接地址，如 127.0.0.1:5432/ragent?client_encoding=UTF8
+    url: jdbc:postgresql://124.221.110.104:35432/postgres?client_encoding=UTF8&currentSchema=ragent
     hikari:
       connection-timeout: 5000
       idle-timeout: 600000
@@ -47,7 +47,7 @@ rocketmq:
 
 # ---- Milvus 向量数据库 ----
 milvus:
-  uri:                                   # 填写 Milvus 地址，如 http://localhost:19530
+  uri: http://124.221.110.104:19530
 
 
 # =============================================================================
@@ -57,7 +57,7 @@ rag:
 
   # ---- 向量存储 ----
   vector:
-    type: pg                             # 向量存储类型：pg（pgvector）或 milvus
+    type: milvus                         # 向量存储类型：pg（pgvector）或 milvus
 
   # ---- 默认向量存储参数 ----
   default:
@@ -234,9 +234,9 @@ ai:
 # 对象存储（RustFS / 兼容 S3）
 # =============================================================================
 rustfs:
-  url:                                   # 填写 S3 端点地址，如 http://localhost:9000
-  access-key-id:                         # 填写 Access Key
-  secret-access-key:                     # 填写 Secret Key
+  url: http://124.221.110.104:9000       # MinIO S3 端点
+  access-key-id: minio                   # MinIO Access Key
+  secret-access-key: minioadmin          # MinIO Secret Key
   asset-bucket: ragent-assets            # 多模态解析产物 bucket（图片等）
 
 
