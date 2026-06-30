@@ -22,7 +22,7 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     username: postgres                      # 填写你的 PG 用户名
     password: postgres200528                # 填写你的 PG 密码
-    url: jdbc:postgresql://124.221.110.104:35432/postgres    # 填写 PG 连接地址，如 127.0.0.1:5432/ragent?client_encoding=UTF8
+    url: jdbc:postgresql://124.221.110.104:35432/ragent?client_encoding=UTF8    # 填写 PG 连接地址，如 127.0.0.1:5432/ragent?client_encoding=UTF8
     hikari:
       connection-timeout: 5000
       idle-timeout: 600000
