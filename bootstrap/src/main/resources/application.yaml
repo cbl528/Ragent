@@ -1,69 +1,277 @@
+# =============================================================================
+# Ragent AI — 应用配置文件
+# =============================================================================
+
+server:
+  port: 9000
+  servlet:
+    context-path: /api/ragent            # 接口上下文路径
+
 spring:
   application:
-    name: bootstrap
-server:
-  port: 8001
+    name: ragent${unique-name:}-service  # 服务名，支持多实例区分
 
-# RAG配置
+  servlet:
+    multipart:
+      max-file-size: 50MB                # 单文件上传上限
+      max-request-size: 100MB            # 单次请求总上限
+
+  # ---- PostgreSQL 数据库（pgvector） ----
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    username: postgres                      # 填写你的 PG 用户名
+    password: postgres200528                # 填写你的 PG 密码
+    url: jdbc:postgresql://124.221.110.104:35432/postgres    # 填写 PG 连接地址，如 127.0.0.1:5432/ragent?client_encoding=UTF8
+    hikari:
+      connection-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      pool-name: RagentHikariPool
+
+  # ---- Redis ----
+  data:
+    redis:
+      host: common-redis-dev.magestack.cn    # 填写 Redis 地址，如 127.0.0.1
+      port: 19389
+      password: Sm9sVXBOYJjI030b5tz0trjpzvZzRhtZmEbv0uOImcD1wEDOPfeaqNU4PxHob/Wp   # 填写 Redis 密码
+
+# ---- RocketMQ ----
+rocketmq:
+  name-server: common-rocketmq-dev.magestack.cn:9876   # 填写 RocketMQ NameServer 地址，如 127.0.0.1:9876
+  producer:
+    group: ragent-producer${unique-name:}_pg
+    send-message-timeout: 2000
+
+# ---- Milvus 向量数据库 ----
+milvus:
+  uri:                                   # 填写 Milvus 地址，如 http://localhost:19530
+
+
+# =============================================================================
+# RAG 核心配置
+# =============================================================================
 rag:
-  trace:
-    enabled: false # 是否开启Trace
 
+  # ---- 向量存储 ----
   vector:
-    type: pg # 向量存储类型，可选：pg / milvus
+    type: pg                             # 向量存储类型：pg（pgvector）或 milvus
 
-  query-rewrite:
-    enabled: true # 是否开启查询重写
-
-  rerank:
-    enabled: true # 是否开启检索重排序
-
+  # ---- 默认向量存储参数 ----
   default:
-    collection-name: rag_default_store # 默认向量存储集合名称
-    dimension: 1536 # 默认向量维度
-    metric-type: COSINE # 默认向量度量类型
-    sse-timeout-ms: 300000 # 默认SSE超时时间
+    collection-name: rag_default_store   # 默认集合/表名
+    dimension: 1536                      # 默认向量维度
+    metric-type: COSINE                  # 相似度度量：COSINE / L2 / IP
+    sse-timeout-ms: 300000              # SSE 流式响应全局超时（毫秒）
 
+  # ---- 查询重写 ----
+  query-rewrite:
+    enabled: true                        # 是否启用问题重写 + 子问题拆分
+
+  # ---- 检索重排序 ----
+  rerank:
+    enabled: true                        # 是否启用 Rerank 后处理
+
+  # ---- 全局限流（SSE 聊天并发控制） ----
   rate-limit:
     global:
-      enabled: true # 是否开启全局限流
-      max-concurrent: 10 # 全局限流最大并发数
-      max-wait-seconds: 15 # 全局限流最大等待时间
-      lease-seconds: 30 # 全局限流租约时间
-      poll-interval-ms: 200 # 全局限流轮询间隔
+      enabled: true                      # 是否启用以 Redis ZSET + Lua 实现的公平排队限流
+      max-concurrent: 10                 # 全局最大并发数
+      max-wait-seconds: 15               # 排队最大等待时间（秒）
+      lease-seconds: 30                  # 单次占用租约时长（秒）
+      poll-interval-ms: 200              # 排队轮询间隔（毫秒）
 
+  # ---- 会话记忆 ----
   memory:
-    history-keep-turns: 4 # 保持对话历史轮数
-    summary-start-turns: 5 # 摘要开始轮数
-    summary-enabled: true # 是否启用摘要
-    summary-max-chars: 200 # 摘要最大字符数
-    title-max-length: 30 # 标题最大长度
+    history-keep-turns: 4                # 保留最近 N 轮对话历史
+    summary-start-turns: 5               # 超过此轮数触发 LLM 摘要压缩
+    summary-enabled: true                # 是否启用摘要
+    summary-max-chars: 200               # 摘要最大字符数
+    title-max-length: 30                 # 会话标题最大字数
 
+  # ---- 文档上传信号量（Redis 分布式版） ----
   semaphore:
     document-upload:
-      name: rag:document:upload # 信号量名称
-      max-concurrent: 10 # 最大并发数
-      max-wait-seconds: 5 # 最大等待时间
-      lease-seconds: 300 # 租约时间
+      name: rag:document:upload          # Redis 信号量 Key
+      max-concurrent: 10                 # 最大并发上传数
+      max-wait-seconds: 5                # 获取许可最大等待（秒）
+      lease-seconds: 300                 # 许可租约时长（秒）
 
+  # ---- 知识库文档定时刷新调度 ----
   knowledge:
     schedule:
-      scan-delay-ms: 10000 # 扫描延迟时间
-      lock-seconds: 900 # 锁定时间
-      batch-size: 20 # 批量处理数量
-      min-interval-seconds: 60 # 最小间隔时间
+      scan-delay-ms: 10000               # 首次扫描延迟（毫秒）
+      lock-seconds: 900                  # Redis 分布式锁持有时间（秒）
+      batch-size: 20                     # 每批处理文档数
+      min-interval-seconds: 60           # 同一文档最小刷新间隔（秒）
 
-# SaToken配置
+  # ---- MCP 工具服务 ----
+  mcp:
+    servers:
+      - name: default
+        url: http://localhost:9001       # 填写 MCP Server 地址，如 http://localhost:9099
+
+  # ---- 检索通道配置 ----
+  search:
+    channels:
+      vector-global:                     # 全局向量检索通道
+        confidence-threshold: 0.6        # 置信度阈值，低于此值的结果不被采纳
+        top-k-multiplier: 3              # Top-K 倍数（最终取 topK = 意图数 × 倍数）
+      intent-directed:                   # 意图定向检索通道
+        enabled: true
+        min-intent-score: 0.4            # 意图最低置信分
+        top-k-multiplier: 2
+
+  # ---- 全链路追踪 ----
+  trace:
+    enabled: true                        # 是否开启 RAG 调用链追踪
+    max-error-length: 1000               # 错误信息最大截断长度（字符）
+
+  # ---- 图片解析（VLM 图生文） ----
+  image-parse:
+    description-prompt: |-               # VLM 图生文引导词：产出中文描述 + OCR 文字
+      请把这张图片的内容转写成一段自包含的知识文本，用于知识库检索与问答，不要描述颜色、布局、字体等视觉样式。要求：
+      1. 开头用一两句话说明这张图是什么（主题、类型、用途），让人不看图也能明白讲的是什么。
+      2. 随后按图中的分组、层级、流程关系，完整转写所有文字内容（OCR），保留每个分组标题与其下属条目的归属关系，不要遗漏任何文字。
+      3. 若是图表、架构图或流程图，请补充说明各部分之间的关系（如包含、调用、先后顺序），而不只是罗列文字。
+      4. 保持术语准确完整，表述贴近用户可能的提问方式。
+      5. 最后另起一行，用一句话自然引出图片（例如"下方为该内容对应的原始图片："），以便在这段文字后紧接着展示图片。
+    max-output-tokens: 4096              # VLM 输出最大 token 数
+
+
+# =============================================================================
+# AI 模型配置
+# =============================================================================
+ai:
+
+  # ---- AI 提供商列表 ----
+  # 每个 provider 必须有 url，api-key 为空时尝试从环境变量读取
+  providers:
+    ollama:                              # Ollama 本地部署
+      url:                               # 如 http://localhost:11434
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /v1/embeddings
+    bailian:                             # 阿里云百炼
+      url: https://dashscope.aliyuncs.com
+      api-key: ${BAILIAN_API_KEY:}       # 环境变量 BAILIAN_API_KEY，或直接填写
+      endpoints:
+        chat: /compatible-mode/v1/chat/completions
+        rerank: /api/v1/services/rerank/text-rerank/text-rerank
+    aihubmix:                            # AIHubMix 聚合网关
+      url: https://aihubmix.com
+      api-key: ${AIHUBMIX_API_KEY:}
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /v1/embeddings
+    siliconflow:                         # 硅基流动
+      url: https://api.siliconflow.cn
+      api-key: ${SILICONFLOW_API_KEY:}
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /v1/embeddings
+
+  # ---- 模型故障熔断 ----
+  selection:
+    failure-threshold: 2                 # 连续失败 N 次触发熔断（CLOSED→OPEN）
+    open-duration-ms: 30000             # 熔断 OPEN 状态持续时间（毫秒），之后进入 HALF_OPEN
+
+  # ---- 流式输出 ----
+  stream:
+    message-chunk-size: 1                # 每次推送的消息块数
+
+  # ---- Chat 模型候选列表 ----
+  # 按 priority 升序择优；supports-thinking 表示是否支持深度思考模式
+  chat:
+    default-model:                       # 默认 Chat 模型 ID，如 qwen-plus
+    deep-thinking-model:                 # 深度思考专用模型 ID，如 qwen3-max
+    candidates:
+      - id:                              # 填写模型 ID（自定义标识）
+        provider:                        # 对应上方 providers 的名称，如 bailian
+        model:                           # 实际模型名，如 qwen-plus-latest
+        priority: 1                      # 优先级（越小越优先）
+      # - id:
+      #   provider:
+      #   model:
+      #   supports-thinking: true        # 标记支持深度思考
+      #   priority: 2
+
+  # ---- Embedding 模型候选列表 ----
+  embedding:
+    default-model:                       # 默认 Embedding 模型 ID
+    candidates:
+      - id:                              # 填写模型 ID
+        provider:                        # 如 siliconflow
+        model:                           # 如 Qwen/Qwen3-Embedding-8B
+        dimension: ${rag.default.dimension}
+        priority: 1
+
+  # ---- Rerank 模型候选列表 ----
+  rerank:
+    default-model:                       # 默认 Rerank 模型 ID
+    candidates:
+      - id:                              # 填写模型 ID
+        provider:                        # 如 bailian
+        model:                           # 如 qwen3-rerank
+        priority: 1
+      - id: rerank-noop                  # 空实现兜底（不重排，原样返回）
+        provider: noop
+        model: noop
+        priority: 100
+
+  # ---- VLM 视觉模型（图片解析用） ----
+  vlm:
+    default-model:                       # 默认 VLM 模型 ID
+    candidates:
+      - id:                              # 填写模型 ID
+        provider:                        # 如 bailian
+        model:                           # 如 qwen-vl-max
+
+
+# =============================================================================
+# 对象存储（RustFS / 兼容 S3）
+# =============================================================================
+rustfs:
+  url:                                   # 填写 S3 端点地址，如 http://localhost:9000
+  access-key-id:                         # 填写 Access Key
+  secret-access-key:                     # 填写 Secret Key
+  asset-bucket: ragent-assets            # 多模态解析产物 bucket（图片等）
+
+
+# =============================================================================
+# MinerU SaaS 文档解析（PDF / Word / PPT 走此通道）
+# =============================================================================
+mineru:
+  api-url: https://mineru.net/api/v4
+  api-key: ${MINERU_API_KEY:}            # MinerU API Key
+  poll-interval-seconds: 5               # 轮询结果间隔（秒）
+  timeout-seconds: 300                   # 单次解析超时（秒）
+  enable-table: true                     # 是否启用表格识别
+  enable-formula: true                   # 是否启用公式识别
+  ocr: false                             # 是否启用 OCR
+  language: ch                           # 文档语言
+  concurrency-limit: 5                   # 并发解析上限
+
+
+# =============================================================================
+# Sa-Token 认证
+# =============================================================================
 sa-token:
-  token-name: Authorization # Token名称
-  timeout: 2592000 # Token超时时间
-  is-concurrent: true # 是否开启并发控制
-  is-share: false # 是否共享Token
-  token-style: simple-uuid # Token样式
-  is-log: false # 是否开启日志
-  is-print: false # 是否开启打印
+  token-name: Authorization              # Token 在 Header 中的字段名
+  timeout: 2592000                       # Token 有效期（秒），默认 30 天
+  is-concurrent: true                    # 是否允许同一账号并发登录
+  is-share: false                        # 是否共享 Token
+  token-style: simple-uuid               # Token 生成风格
+  is-log: false                          # 是否输出操作日志
+  is-print: false                        # 是否打印 Token 信息
 
+
+# =============================================================================
+# 应用开关
+# =============================================================================
 app:
-  demo-mode: false
+  demo-mode: false                       # 是否启用 Demo 模式
   eval:
-    enabled: true # 是否开启评估模式
+    enabled: true                        # 是否开启评估模式

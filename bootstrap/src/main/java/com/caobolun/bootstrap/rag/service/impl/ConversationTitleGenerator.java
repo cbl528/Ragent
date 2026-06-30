@@ -1,5 +1,6 @@
 package com.caobolun.bootstrap.rag.service.impl;
 
+import com.caobolun.bootstrap.core.prompt.PromptTemplateLoader;
 import com.caobolun.bootstrap.rag.config.MemoryProperties;
 import com.caobolun.infraai.chat.LLMService;
 import lombok.RequiredArgsConstructor;

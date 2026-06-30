@@ -1,5 +1,6 @@
 package com.caobolun.bootstrap.rag.controller;
 
+import com.caobolun.bootstrap.ingestion.service.IntentTreeService;
 import com.caobolun.bootstrap.rag.dto.request.IntentNodeBatchRequest;
 import com.caobolun.bootstrap.rag.dto.request.IntentNodeCreateRequest;
 import com.caobolun.bootstrap.rag.dto.request.IntentNodeUpdateRequest;

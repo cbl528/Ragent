@@ -3,6 +3,8 @@ package com.caobolun.bootstrap.konwledge.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.caobolun.bootstrap.konwledge.dto.request.KnowledgeDocumentPageRequest;
+import com.caobolun.bootstrap.konwledge.dto.request.KnowledgeDocumentUpdateRequest;
+import com.caobolun.bootstrap.konwledge.dto.request.KnowledgeDocumentUploadRequest;
 import com.caobolun.bootstrap.konwledge.dto.vo.KnowledgeDocumentChunkLogVO;
 import com.caobolun.bootstrap.konwledge.dto.vo.KnowledgeDocumentSearchVO;
 import com.caobolun.bootstrap.konwledge.dto.vo.KnowledgeDocumentVO;
@@ -12,12 +14,15 @@ import com.caobolun.framework.convention.Result;
 import com.caobolun.framework.web.Results;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.util.StreamUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 

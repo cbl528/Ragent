@@ -1,6 +1,7 @@
 package com.caobolun.bootstrap.konwledge.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.caobolun.bootstrap.core.chunk.ChunkingMode;
 import com.caobolun.bootstrap.konwledge.dto.request.KnowledgeBaseCreateRequest;
 import com.caobolun.bootstrap.konwledge.dto.request.KnowledgeBasePageRequest;
 import com.caobolun.bootstrap.konwledge.dto.request.KnowledgeBaseUpdateRequest;
