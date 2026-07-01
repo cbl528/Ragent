@@ -37,6 +37,7 @@ spring:
       host: common-redis-dev.magestack.cn    # 填写 Redis 地址，如 127.0.0.1
       port: 19389
       password: Sm9sVXBOYJjI030b5tz0trjpzvZzRhtZmEbv0uOImcD1wEDOPfeaqNU4PxHob/Wp   # 填写 Redis 密码
+      database: 4                            # Redis 数据库编号（0-15）
 
 # ---- RocketMQ ----
 rocketmq:
@@ -128,6 +129,13 @@ rag:
   trace:
     enabled: true                        # 是否开启 RAG 调用链追踪
     max-error-length: 1000               # 错误信息最大截断长度（字符）
+
+  # ---- 歧义引导 ----
+  guidance:
+    enabled: true                        # 是否启用引导式问答
+    ambiguity-score-ratio: 0.8           # 歧义阈值（高于此值直接触发澄清）
+    ambiguity-margin: 0.15               # 阈值缓冲宽度（在此区间进入 LLM 二次确认）
+    max-options: 6                       # 单次最多展示的澄清选项数
 
   # ---- 图片解析（VLM 图生文） ----
   image-parse:
@@ -258,6 +266,12 @@ mineru:
 # =============================================================================
 # Sa-Token 认证
 # =============================================================================
+# ---- 日志 ----
+logging:
+  level:
+    com.caobolun.bootstrap: DEBUG          # 项目代码 DEBUG 级别
+    com.baomidou.mybatisplus: DEBUG        # MyBatis-Plus 输出 SQL
+
 sa-token:
   token-name: Authorization              # Token 在 Header 中的字段名
   timeout: 2592000                       # Token 有效期（秒），默认 30 天

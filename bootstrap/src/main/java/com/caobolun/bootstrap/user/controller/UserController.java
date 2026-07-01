@@ -14,8 +14,10 @@ import com.caobolun.framework.context.UserContext;
 import com.caobolun.framework.convention.Result;
 import com.caobolun.framework.web.Results;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class UserController {
@@ -41,6 +43,7 @@ public class UserController {
      */
     @GetMapping("/users")
     public Result<IPage<UserVO>> pageQuery(UserPageRequest requestParam) {
+        log.info("分页查询用户列表: requestParam : {}", requestParam);
         StpUtil.checkRole("admin");
         return Results.success(userService.pageQuery(requestParam));
     }

@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
                 Wrappers.lambdaQuery(UserDO.class)
                         .eq(UserDO::getDeleted, 0)
                         .and(StrUtil.isNotBlank(keyWord), wrapper -> wrapper
-                                .like(UserDO::getRole, keyWord)
+                                .like(UserDO::getUsername, keyWord)
                                 .or()
                                 .like(UserDO::getRole, keyWord)
                         )
