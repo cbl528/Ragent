@@ -17,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
+/**
+ * 流式聊天事件处理器
+ */
 @Slf4j
 public class StreamChatEventHandler implements StreamCallback {
 

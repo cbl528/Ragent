@@ -37,6 +37,7 @@ public class StreamCallbackFactory {
                 .taskId(taskId)
                 .modelProperties(modelProperties)
                 .memoryService(memoryService)
+                .conversationGroupService(groupService)
                 .taskManager(taskManager)
                 .build();
         return new StreamChatEventHandler(build);

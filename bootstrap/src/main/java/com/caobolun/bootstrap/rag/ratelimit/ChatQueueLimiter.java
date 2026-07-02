@@ -43,9 +43,19 @@ public class ChatQueueLimiter {
     private final ConversationGroupService conversationGroupService;
     private final MemoryProperties memoryProperties;
 
+
+    /**
+     * 入队限流
+     * @param question 提问的内容
+     * @param conversationId 会话 ID
+     * @param emitter SSE 发送器
+     * @param onAcquire 获取令牌的回调
+     */
     public void enqueue(String question, String conversationId, SseEmitter emitter, Runnable onAcquire) {
+        // 全局限流开关关闭
         if (!Boolean.TRUE.equals(rateLimitProperties.getGlobalEnabled())) {
             try {
+                // 限流关闭，直接在线程池中执行
                 chatEntryExecutor.execute(onAcquire);
             } catch (RejectedExecutionException ex) {
                 log.warn("直通分支线程池拒绝任务，转 reject 流程", ex);
@@ -53,11 +63,12 @@ public class ChatQueueLimiter {
             }
             return;
         }
-
+        // 限流开启，通过Redis ZSET 公平限流器排队
         chatRateLimiter.acquire(AcquireRequest.builder()
+                // 最大等待时间
                 .maxWaitMillis(TimeUnit.SECONDS.toMillis(rateLimitProperties.getGlobalMaxWaitSeconds()))
-                .onAcquired(onAcquire)
-                .onTimeout(() -> handleReject(question, conversationId, emitter))
+                .onAcquired(onAcquire) // 获取令牌的回调
+                .onTimeout(() -> handleReject(question, conversationId, emitter)) // 超时的回调
                 .onAcquiredExecutor(chatEntryExecutor)
                 .cancelBinder(cancel -> {
                     emitter.onCompletion(cancel);

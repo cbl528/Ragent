@@ -47,12 +47,14 @@ public class StreamChatTraceRunner {
                     StreamCallback callback,
                     Consumer<StreamCallback> businessLogic) {
         if (!traceProperties.isEnabled()) {
+            // Trace关闭：直接执行业务逻辑
             runWithoutTrace(conversationId, taskId, callback, businessLogic);
             return;
         }
-
+        // Trace开启：记录 run 开始
         String traceId = IdUtil.getSnowflakeNextIdStr();
         long startMillis = System.currentTimeMillis();
+        // Trace 开启：创建RagTraceRunDO记录
         traceRecordService.startRun(RagTraceRunDO.builder()
                 .traceId(traceId)
                 .traceName(TRACE_NAME)
@@ -143,6 +145,7 @@ public class StreamChatTraceRunner {
                                  StreamCallback callback,
                                  Consumer<StreamCallback> businessLogic) {
         try {
+            // Trace关闭：直接执行业务逻辑
             businessLogic.accept(callback);
         } catch (Throwable ex) {
             log.warn("执行流式对话失败，会话ID：{}，任务ID：{}", conversationId, taskId, ex);
